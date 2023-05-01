@@ -3,7 +3,7 @@ from django.db import models
 
 class Elevator(models.Model):
     id = models.AutoField(primary_key=True)
-    current_floor = models.IntegerField(null=False, blank=False,default=0)
+    current_floor = models.IntegerField(null=False, blank=False, default=0)
     is_operational = models.BooleanField(default=True, null=False, blank=False)
     is_moving = models.BooleanField(default=True, null=False, blank=False)
     direction = models.IntegerField(null=False, blank=False)
