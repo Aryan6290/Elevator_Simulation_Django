@@ -1,14 +1,20 @@
 from django.db.models import F
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from elevator_apis.models import Elevator
 from django.core.cache import cache
 
+from elevator_apis.models.Elevator import Elevator
 from elevator_apis.serializer import ElevatorSerializer
 from elevator_backend.utils.elevator_utils.elevator_utils import move_elevator
+from django.db.models.functions import Abs
 
 
-class ElevatorSystemAPI(viewsets.GenericViewSet):
+class ElevatorSystemViewset(viewsets.ModelViewSet):
+    queryset = Elevator.objects.all()
+    serializer_class = ElevatorSerializer
+
+    @action(detail=False, methods=['POST'], name='Initialise')
     def initialise(self, request):
         try:
             number_of_lifts = request.data.get('lifts_count')
@@ -27,8 +33,10 @@ class ElevatorSystemAPI(viewsets.GenericViewSet):
 
             return Response(status=status.HTTP_200_OK)
         except Exception as e:
+            print(e)
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=False, methods=['POST'], name='Patch')
     def patch(self, request, pk):
         try:
             elevator = Elevator.objects.get(pk=pk)
@@ -42,11 +50,13 @@ class ElevatorSystemAPI(viewsets.GenericViewSet):
         serializer = ElevatorSerializer(elevator)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['POST'], name='Call Elevator', url_path='call')
     def call_for_elevator(self, request):
         try:
             calls = request.data.get('calls')
             max_floor = cache.get('max_floor')
             min_floor = cache.get('min_floor')
+            print(max_floor, min_floor)
             assigned_elevators = []
             for target_floor in calls:
                 if target_floor < min_floor or target_floor > max_floor:
@@ -56,18 +66,22 @@ class ElevatorSystemAPI(viewsets.GenericViewSet):
                     is_operational=True,
                     is_moving=False,
                 ).annotate(
-                    distance=abs(F('current_floor') - target_floor)
+                    distance=Abs(F('current_floor') - target_floor)
                 ).order_by('distance').first()
+                if not nearest_elevator:
+                    continue
                 direction = -1 if target_floor < nearest_elevator.current_floor else 1
-                is_moving = move_elevator(nearest_elevator.id, direction)
+                is_moving = move_elevator(nearest_elevator.id, direction, target_floor)
                 assigned_elevators.append(nearest_elevator.id)
 
             Elevator.objects.filter(is_moving=True).update(is_moving=False)
             return Response(status=status.HTTP_200_OK,
                             data={"assigned_elevators": assigned_elevators})
         except Exception as e:
+            print(e)
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, exception=e)
 
+    @action(detail=False, methods=['POST'], name='Elevator status')
     def get_moving_status(self, request):
         try:
             elevator_id = request.data.get('elevator_id')
@@ -78,6 +92,7 @@ class ElevatorSystemAPI(viewsets.GenericViewSet):
         except Elevator.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Elevator does not exists"})
 
+    @action(detail=False, methods=['POST'], name='Destination Status')
     def get_destination(self, request):
         try:
             elevator_id = request.data.get('elevator_id')
