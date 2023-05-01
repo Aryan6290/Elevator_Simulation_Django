@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.core.cache import cache
 
 from elevator_apis.models.Elevator import Elevator
+from elevator_apis.models.ElevatorRequest import ElevatorRequest
 from elevator_apis.serializer import ElevatorSerializer
 from elevator_backend.utils.elevator_utils.elevator_utils import move_elevator
 from django.db.models.functions import Abs
@@ -98,7 +99,18 @@ class ElevatorSystemViewset(viewsets.ModelViewSet):
             elevator_id = request.data.get('elevator_id')
             elevator = Elevator.objects.get(pk=elevator_id)
             return Response(status=status.HTTP_200_OK, data={
-                "direction": elevator.current_floor
+                "destination": elevator.current_floor
             })
+        except Elevator.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Elevator does not exists"})
+
+    @action(detail=False, methods=['POST'], name='Destination Status')
+    def get_all_status(self, request):
+        try:
+            elevator_id = request.data.get('elevator_id')
+            elevator = Elevator.objects.get(pk=elevator_id)
+            elevator_requests = ElevatorRequest.objects.filter(elevator_id=elevator)
+            data = {'objects': list(elevator_requests.values())}
+            return Response(status=status.HTTP_200_OK, data=data)
         except Elevator.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Elevator does not exists"})
