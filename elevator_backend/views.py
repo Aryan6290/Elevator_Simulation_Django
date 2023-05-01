@@ -18,10 +18,13 @@ class ElevatorSystemViewset(viewsets.ModelViewSet):
     @action(detail=False, methods=['POST'], name='Initialise')
     def initialise(self, request):
         try:
+            # Getting all the inputs for initialising elevator system
+
             number_of_lifts = request.data.get('lifts_count')
             max_floor = request.data.get("max_floor")
             min_floor = request.data.get("min_floor")
             lift_positions = request.data.get("lift_positions")
+            # setting global variables in cache
             cache.set('max_floor', max_floor, timeout=None)
             cache.set('min_floor', min_floor, timeout=None)
             cache.set('number_of_lifts', number_of_lifts, timeout=None)
@@ -29,6 +32,7 @@ class ElevatorSystemViewset(viewsets.ModelViewSet):
             new_elevators = []
 
             for i in range(0, number_of_lifts):
+                # Creating elevator objects
                 new_elevator = Elevator.objects.create(current_floor=lift_positions[i])
                 new_elevators.append(new_elevator)
 
@@ -62,7 +66,7 @@ class ElevatorSystemViewset(viewsets.ModelViewSet):
             for target_floor in calls:
                 if target_floor < min_floor or target_floor > max_floor:
                     return Response(status=status.HTTP_400_BAD_REQUEST, exception="Floor is out of bounds!")
-
+                # FCFS algorithm for getting the nearest elevator for each floor
                 nearest_elevator = Elevator.objects.filter(
                     is_operational=True,
                     is_moving=False,
@@ -71,10 +75,11 @@ class ElevatorSystemViewset(viewsets.ModelViewSet):
                 ).order_by('distance').first()
                 if not nearest_elevator:
                     continue
+                # -1 when lift is going down and +1 if it is going up
                 direction = -1 if target_floor < nearest_elevator.current_floor else 1
                 is_moving = move_elevator(nearest_elevator.id, direction, target_floor)
                 assigned_elevators.append(nearest_elevator.id)
-
+            # We set the lift to moving state so it is not selected again, hence resetting it here
             Elevator.objects.filter(is_moving=True).update(is_moving=False)
             return Response(status=status.HTTP_200_OK,
                             data={"assigned_elevators": assigned_elevators})
