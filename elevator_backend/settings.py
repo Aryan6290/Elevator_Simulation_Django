@@ -51,7 +51,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 ROOT_URLCONF = 'elevator_backend.urls'
 
 TEMPLATES = [
@@ -75,7 +74,12 @@ WSGI_APPLICATION = 'elevator_backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
+    }
+}
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
