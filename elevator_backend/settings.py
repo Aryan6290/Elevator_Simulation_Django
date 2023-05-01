@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'elevator_backend',
     'elevator_apis',
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
