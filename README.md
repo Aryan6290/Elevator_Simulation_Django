@@ -7,7 +7,7 @@ What does Simulation can do :
 3. When call(s) are made from multiple floors, a FCFS algorithm is used to get the nearest elevator for each call.
 4. Record all requests made to an elevator.
 
-Thought Process 
+# Thought Process 
 
 1. There should be a single class (System) to take requests for the API Calls.
 2. There are variables which are only initialised once and never changes throughout the lifecycle of the application. (Cache is used)
@@ -16,7 +16,7 @@ Thought Process
 so this elevator is not selected again by any other request.
 5. All requests to any elevator should be recorded, hence a schema is needed.
 
-APIs endpoints :
+# APIs endpoints :
 
 /api/elevator/initialise : Takes number of lifts, nax_floor and min_floor and staring points as a parameter
 
@@ -29,4 +29,17 @@ APIs endpoints :
 /api/elevator/get_destination = Get the destination in which the elevator is currently
 
 /api/elevator/get_requests = Get all requests for an elevator made so far.
+
+
+# Library/Framework
+
+1. Django
+2. DRF
+3. VirtualEnv
+
+# Steps to setup
+
+1. Clone the repository
+2. Run pip install -r requirements.txt (PIP, Django must be installed in the system)
+3. python manage.py runserver
 
