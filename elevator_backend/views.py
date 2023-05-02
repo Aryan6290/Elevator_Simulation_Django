@@ -87,7 +87,7 @@ class ElevatorSystemViewset(viewsets.ModelViewSet):
             print(e)
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, exception=e)
 
-    @action(detail=False, methods=['POST'], name='Elevator status')
+    @action(detail=False, methods=['POST'], name='Elevator status', url_path='moving_status')
     def get_moving_status(self, request):
         try:
             elevator_id = request.data.get('elevator_id')
@@ -98,7 +98,7 @@ class ElevatorSystemViewset(viewsets.ModelViewSet):
         except Elevator.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Elevator does not exists"})
 
-    @action(detail=False, methods=['POST'], name='Destination Status')
+    @action(detail=False, methods=['POST'], name='Destination Status', url_path='get_destination')
     def get_destination(self, request):
         try:
             elevator_id = request.data.get('elevator_id')
@@ -109,8 +109,8 @@ class ElevatorSystemViewset(viewsets.ModelViewSet):
         except Elevator.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Elevator does not exists"})
 
-    @action(detail=False, methods=['POST'], name='Destination Status')
-    def get_all_status(self, request):
+    @action(detail=False, methods=['POST'], name='Destination Status',url_path='get_requests')
+    def get_all_requests(self, request):
         try:
             elevator_id = request.data.get('elevator_id')
             elevator = Elevator.objects.get(pk=elevator_id)
